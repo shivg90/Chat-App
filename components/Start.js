@@ -1,4 +1,4 @@
-import { StyleSheet, View, Text, TextInput, ImageBackground, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, Text, TextInput, ImageBackground, TouchableOpacity, Platform, KeyboardAvoidingView } from 'react-native';
 import { useState } from 'react';
 
 const backgroundColors = {
@@ -15,12 +15,14 @@ const Start = ({ navigation }) => {
     const [color, setColor] = useState('');
 
  return (
+  // adjusts padding on IOS, else adjusts height on other OS
+  <KeyboardAvoidingView style={styles.container} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
   <ImageBackground source={require('../assets/Background-Image.png')} resizeMode="cover" style={styles.image}>
     
       <Text style={styles.title}>Chat App</Text>
 
       {/* views are like divs */}
-      <View style={styles.inputBox}>
+      <View style={styles.inputBox} >
        <TextInput
         style={styles.textInput}
         value={name}
@@ -85,16 +87,18 @@ const Start = ({ navigation }) => {
       >
         <Text style={styles.buttonText}>Start Chatting</Text>
       </TouchableOpacity>
-    
+      
     </View>
   </ImageBackground>
+  </KeyboardAvoidingView>
   
  );
 }
 
 const styles = StyleSheet.create({
  container: {
-   flex: 1
+   flex: 1,
+   justifyContent: 'center'
  },
  textInput: {
     width: "88%",
