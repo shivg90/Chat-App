@@ -19,9 +19,7 @@ const Chat = ({route, navigation, db}) => {
         const newMessages = [];
         querySnapshot.forEach((doc) => {
         const newMessage = doc.data();
-        newMessage.createdAt = new Date(
-          newMessage.createdAt.seconds * 1000
-        );
+        newMessage.createdAt = new Date(newMessage.createdAt.toMillis());
         newMessages.push(newMessage);
         });
         setMessages(newMessages);
