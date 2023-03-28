@@ -1,35 +1,35 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { GiftedChat, Bubble } from "react-native-gifted-chat";
+import { collection, query, orderBy, onSnapshot, addDoc } from "firebase/firestore";
 
-const Chat = ({route, navigation}) => {
-    const { name, color } = route.params;
+// onSnapshot implements real time communication by acting as a listener
+
+const Chat = ({route, navigation, db}) => {
+    const { name, color, userID} = route.params;
     const [messages, setMessages] = useState([]);
     // state's setter function accepts a call back function with parameter refering to last set value of the state (previousMessages)
     const onSend = (newMessages) => {
-      setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages))
+      addDoc(collection(db, "messages"), newMessages[0])
     }
 
     useEffect(() => {
-      // info required as per gifted chat library format
-      setMessages([
-        {
-          _id: 1,
-          text: "Hello developer",
-          createdAt: new Date(),
-          user: {
-            _id: 2,
-            name: "React Native",
-            avatar: "https://placeimg.com/140/140/any",
-          },
-        },
-        {
-          _id: 2,
-          text: 'This is a system message',
-          createdAt: new Date(),
-          system: true,
-        },
-      ]);
+      const q = query(collection(db, "messages"), orderBy("createdAt", "desc"));
+      const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const newMessages = [];
+        querySnapshot.forEach((doc) => {
+        const newMessage = doc.data();
+        newMessage.createdAt = new Date(
+          newMessage.createdAt.seconds * 1000
+        );
+        newMessages.push(newMessage);
+        });
+        setMessages(newMessages);
+      })
+      return () => {
+        unsubscribe();
+      }
+      
     }, []);
   
 
@@ -59,7 +59,8 @@ const Chat = ({route, navigation}) => {
       renderBubble={renderBubble}
       onSend={messages => onSend(messages)}
       user={{
-        _id: 1
+        _id: userID,
+        name: name
       }}
     />
     {/* fix for blocked view on android */}
