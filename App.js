@@ -7,6 +7,7 @@ import { getFirestore, disableNetwork, enableNetwork } from "firebase/firestore"
 import { useNetInfo } from '@react-native-community/netinfo'; // works like a React Hook
 import { useEffect } from "react";
 import { Alert } from "react-native";
+import { getStorage } from "firebase/storage";
 
 // Create the navigator
 const Stack = createNativeStackNavigator();
@@ -40,6 +41,9 @@ const App = () => {
   // db is object that can be passed to Start or Chat to read and write to/from database
   const db = getFirestore(app);
 
+  // firebase storage handler
+  const storage = getStorage(app);
+
   return (
     <NavigationContainer>
       <Stack.Navigator
@@ -52,7 +56,7 @@ const App = () => {
         <Stack.Screen
           name="Chat"
         >
-          {props => <Chat isConnected={connectionStatus.isConnected} db={db} {...props} />}
+          {props => <Chat isConnected={connectionStatus.isConnected} db={db} storage={storage} {...props} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>

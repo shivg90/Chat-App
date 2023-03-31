@@ -3,11 +3,13 @@ import { StyleSheet, View, KeyboardAvoidingView, Platform } from 'react-native';
 import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
 import { collection, query, orderBy, onSnapshot, addDoc } from "firebase/firestore";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomActions from './CustomActions';
+import MapView from 'react-native-maps';
 
 // onSnapshot implements real time communication by acting as a listener
 
-const Chat = ({route, navigation, db, isConnected}) => {
-    const { name, color, userID} = route.params;
+const Chat = ({route, navigation, db, isConnected, storage}) => {
+    const { name, color, userID } = route.params;
     const [messages, setMessages] = useState([]);
     const onSend = (newMessages) => {
       addDoc(collection(db, "messages"), newMessages[0])
@@ -28,7 +30,7 @@ const Chat = ({route, navigation, db, isConnected}) => {
     }
     // must declare outside of the useEffect function so that the reference to old onSnapShot () is not lost
     let unsubscribe;
-    
+
     // if there's a connection: fetch messages from firebase, if not: load from Async storage (loadCachedMessages)
     useEffect(() => {
       if (isConnected === true) {
@@ -76,6 +78,38 @@ const Chat = ({route, navigation, db, isConnected}) => {
       if (isConnected) return <InputToolbar {...props} />;
       else return null;
     }
+
+    const renderCustomActions = (props) => {
+      return <CustomActions userID={userID} storage={storage} {...props}  />;
+    };
+
+    const renderCustomView = (props) => {
+      const { currentMessage } = props;
+      if (currentMessage.location) {
+        return (
+          <MapView
+            style={{
+              width: 150,
+              height: 100,
+              borderRadius: 13,
+              margin: 3
+            }}
+            region={{
+              latitude: currentMessage.location.latitude,
+              longitude: currentMessage.location.longitude,
+              latitudeDelta: 0.0922,
+              longitudeDelta: 0.0421,
+            }}
+          />
+        );
+      }
+      return null;
+    }
+
+  
+  // all props provided by GiftedChat library
+  // renderActions = plus/circle button to use images and location (CustomActions.js)
+  // renderCustomView = renders the map
       
  return (
    <View style={[styles.container, { backgroundColor: color }]}>
@@ -83,6 +117,8 @@ const Chat = ({route, navigation, db, isConnected}) => {
       messages={messages}
       renderBubble={renderBubble}
       renderInputToolbar={renderInputToolbar}
+      renderActions={renderCustomActions}
+      renderCustomView={renderCustomView}
       onSend={messages => onSend(messages)}
       user={{
         _id: userID,
